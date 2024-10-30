@@ -1,0 +1,65 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env.DATABASE_URL
+}
+
+model User {
+  id            String      @id @default(cuid())
+  name          String?
+  email         String      @unique
+  emailVerified DateTime?
+  image         String?
+  
+  // Interviews where user is interviewer
+  givenInterviews    Interview[] @relation("Interviewer")
+  // Interviews where user is interviewee
+  takenInterviews    Interview[] @relation("Interviewee")
+  // Available slots
+  availableSlots     TimeSlot[]
+}
+
+model TimeSlot {
+  id          String    @id @default(cuid())
+  startTime   DateTime
+  duration    Int       // in minutes
+  isBooked    Boolean   @default(false)
+  userId      String    // interviewer
+  user        User      @relation(fields: [userId], references: [id])
+  interview   Interview?
+}
+
+model Interview {
+  id            String    @id @default(cuid())
+  timeSlot      TimeSlot  @relation(fields: [timeSlotId], references: [id])
+  timeSlotId    String    @unique
+  interviewer   User      @relation("Interviewer", fields: [interviewerId], references: [id])
+  interviewerId String
+  interviewee   User      @relation("Interviewee", fields: [intervieweeId], references: [id])
+  intervieweeId String
+  meetLink      String?
+  status        InterviewStatus @default(SCHEDULED)
+  feedback      Feedback?
+}
+
+model Feedback {
+  id                  String    @id @default(cuid())
+  interview           Interview @relation(fields: [interviewId], references: [id])
+  interviewId         String    @unique
+  communication       Int       // 1-5 rating
+  technicalKnowledge  Int       // 1-5 rating
+  problemSolving      Int       // 1-5 rating
+  comments           String?
+  areasOfImprovement String?
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
