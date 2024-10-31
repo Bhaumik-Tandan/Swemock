@@ -1,9 +1,7 @@
-// app/api/auth/[...nextauth]/route.ts
-
 import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import NextAuth from "next-auth"
+import NextAuth from "next-auth/next"
 import GoogleProvider from "next-auth/providers/google"
-import { prisma } from "@/lib/db"
+import { prisma } from "@/app/lib/db"
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
@@ -14,11 +12,20 @@ const handler = NextAuth({
     }),
   ],
   callbacks: {
-    session: async ({ session, user }) => {
+    async session({ session, token, user }) {  // Added user parameter
       if (session?.user) {
-        session.user.id = user.id;
+        session.user.id = user.id  // Add user ID to session
       }
       return session;
+    },
+    async jwt({ token, user, account }) {
+      if (account) {
+        token.accessToken = account.access_token
+      }
+      if (user) {
+        token.id = user.id
+      }
+      return token;
     },
   },
 })

@@ -1,59 +1,94 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "mongodb"
-  url      = env.DATABASE_URL
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.String
+  access_token      String? @db.String
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.String
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  id            String      @id @default(cuid())
+  id            String    @id @default(auto()) @map("_id") @db.ObjectId
   name          String?
-  email         String      @unique
+  email         String    @unique
   emailVerified DateTime?
   image         String?
-  
+  accounts      Account[]
+  sessions      Session[]
   // Interviews where user is interviewer
-  givenInterviews    Interview[] @relation("Interviewer")
+  givenInterviews Interview[] @relation("Interviewer")
   // Interviews where user is interviewee
-  takenInterviews    Interview[] @relation("Interviewee")
+  takenInterviews Interview[] @relation("Interviewee")
   // Available slots
-  availableSlots     TimeSlot[]
+  availableSlots  TimeSlot[]
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model TimeSlot {
-  id          String    @id @default(cuid())
-  startTime   DateTime
-  duration    Int       // in minutes
-  isBooked    Boolean   @default(false)
-  userId      String    // interviewer
-  user        User      @relation(fields: [userId], references: [id])
-  interview   Interview?
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  startTime DateTime
+  duration  Int // in minutes
+  isBooked  Boolean    @default(false)
+  userId    String     @db.ObjectId
+  user      User       @relation(fields: [userId], references: [id])
+  interview Interview?
 }
 
 model Interview {
-  id            String    @id @default(cuid())
-  timeSlot      TimeSlot  @relation(fields: [timeSlotId], references: [id])
-  timeSlotId    String    @unique
-  interviewer   User      @relation("Interviewer", fields: [interviewerId], references: [id])
-  interviewerId String
-  interviewee   User      @relation("Interviewee", fields: [intervieweeId], references: [id])
-  intervieweeId String
+  id            String          @id @default(auto()) @map("_id") @db.ObjectId
+  timeSlot      TimeSlot        @relation(fields: [timeSlotId], references: [id])
+  timeSlotId    String          @unique @db.ObjectId
+  interviewer   User            @relation("Interviewer", fields: [interviewerId], references: [id])
+  interviewerId String          @db.ObjectId
+  interviewee   User            @relation("Interviewee", fields: [intervieweeId], references: [id])
+  intervieweeId String          @db.ObjectId
   meetLink      String?
   status        InterviewStatus @default(SCHEDULED)
   feedback      Feedback?
 }
 
 model Feedback {
-  id                  String    @id @default(cuid())
-  interview           Interview @relation(fields: [interviewId], references: [id])
-  interviewId         String    @unique
-  communication       Int       // 1-5 rating
-  technicalKnowledge  Int       // 1-5 rating
-  problemSolving      Int       // 1-5 rating
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  interview          Interview @relation(fields: [interviewId], references: [id])
+  interviewId        String    @unique @db.ObjectId
+  communication      Int // 1-5 rating
+  technicalKnowledge Int // 1-5 rating
+  problemSolving     Int // 1-5 rating
   comments           String?
   areasOfImprovement String?
 }
