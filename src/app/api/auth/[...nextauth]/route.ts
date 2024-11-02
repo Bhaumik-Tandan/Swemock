@@ -11,12 +11,13 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
+  secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    async session({ session, token, user }) {  // Added user parameter
+    async session({ session, token }) {
       if (session?.user) {
-        session.user.id = user.id  // Add user ID to session
+        session.user.id = token.id as string
       }
-      return session;
+      return session
     },
     async jwt({ token, user, account }) {
       if (account) {
@@ -25,9 +26,25 @@ const handler = NextAuth({
       if (user) {
         token.id = user.id
       }
-      return token;
+      return token
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/") || url.startsWith(baseUrl)) {
+        if (url.startsWith("/?callbackUrl=")) {
+          const callbackUrl = decodeURIComponent(url.split("callbackUrl=")[1])
+          return `${baseUrl}${callbackUrl}`
+        }
+        return url
+      }
+      return baseUrl
+    }
   },
+  pages: {
+    signIn: '/',
+  },
+  session: {
+    strategy: "jwt"
+  }
 })
 
 export { handler as GET, handler as POST }
