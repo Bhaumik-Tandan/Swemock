@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ArrowLeft, Clock, Calendar, User, Plus, X, LogOutIcon } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
+import { Clock, Calendar as CalendarIcon, User, Plus, X, LogOutIcon } from 'lucide-react';
+
+import { Calendar } from "@/components/ui/calendar"
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -9,7 +12,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { signOut, useSession } from 'next-auth/react';
 
 const UpcomingInterviews = () => (
   <ScrollArea className="h-[calc(100vh-8rem)] px-6">
@@ -22,7 +24,7 @@ const UpcomingInterviews = () => (
               <div className="flex justify-between items-start">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-5 w-5" />
+                    <CalendarIcon className="h-5 w-5" />
                     <span>October 31, 2024</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -53,7 +55,7 @@ const UpcomingInterviews = () => (
               <div className="flex justify-between items-center">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-5 w-5" />
+                    <CalendarIcon className="h-5 w-5" />
                     <span>October 25, 2024</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -75,7 +77,7 @@ const UpcomingInterviews = () => (
               <div className="flex justify-between items-center">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-muted-foreground">
-                    <Calendar className="h-5 w-5" />
+                    <CalendarIcon className="h-5 w-5" />
                     <span>October 20, 2024</span>
                   </div>
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -93,7 +95,7 @@ const UpcomingInterviews = () => (
 );
 
 const SetAvailability = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
 
   const timeSlots = Array.from({ length: 17 }, (_, i) => {
@@ -135,8 +137,13 @@ const SetAvailability = () => {
               <CardTitle>Select Date</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="bg-muted rounded-lg p-4 text-center text-muted-foreground">
-                Calendar Placeholder
+              <div>
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={(date) => setSelectedDate(date)}
+                  className="rounded-md border shadow"
+                />
               </div>
             </CardContent>
           </Card>
@@ -148,7 +155,7 @@ const SetAvailability = () => {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                  <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                   <span>{formatDate(selectedDate)}</span>
                 </div>
 
@@ -187,7 +194,7 @@ const SetAvailability = () => {
                   <div className="flex justify-between items-center">
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
-                        <Calendar className="h-5 w-5 text-muted-foreground" />
+                        <CalendarIcon className="h-5 w-5 text-muted-foreground" />
                         <span>{formatDate(slot.date)}</span>
                       </div>
                       <div className="flex items-center gap-2">
@@ -218,44 +225,53 @@ const SetAvailability = () => {
   );
 };
 
-const MockPrep = () => {
+const Header = () => {
   const { data: session } = useSession()
 
   return (
-    <div className="max-w-2xl mx-auto bg-background min-h-screen">
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-xl font-semibold">MockPrep</h1>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Avatar>
-              <AvatarImage src={session?.user?.image || ''} />
-              <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
-            </Avatar>
-            <span>{session?.user?.name}</span>
+    <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center gap-2">
+      <div className="w-12 h-12 bg-slate-900 rounded-full flex items-center justify-center text-white text-xl font-semibold">
+            M
           </div>
-          <Button variant="ghost" size="icon" onClick={() => signOut({ callbackUrl: '/' })}>
-            <LogOutIcon className="h-4 w-4" />
-          </Button>
-        </div>
+        <h1 className="text-xl font-semibold">MockPrep</h1>
       </div>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <Avatar>
+            <AvatarImage src={session?.user?.image || ''} />
+            <AvatarFallback>{session?.user?.name?.[0]}</AvatarFallback>
+          </Avatar>
+          <span>{session?.user?.name}</span>
+        </div>
+        <Button variant="ghost" size="icon" onClick={() => signOut({ callbackUrl: '/' })}>
+          <LogOutIcon className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
+  );
+}
 
-      <Tabs defaultValue="upcoming" className="w-full">
-        <TabsList className="w-full grid grid-cols-2">
-          <TabsTrigger value="upcoming">Upcoming Interviews</TabsTrigger>
-          <TabsTrigger value="availability">Set Availability</TabsTrigger>
-        </TabsList>
-        <TabsContent value="upcoming">
-          <UpcomingInterviews />
-        </TabsContent>
-        <TabsContent value="availability">
-          <SetAvailability />
-        </TabsContent>
-      </Tabs>
+const MockPrep = () => {
+  return (
+    <div className="max-w-full mx-auto bg-background min-h-screen">
+
+      <Header />
+      <div className="max-w-2xl mx-auto mt-2">
+
+        <Tabs defaultValue="upcoming" className="w-full">
+          <TabsList className="w-full grid grid-cols-2">
+            <TabsTrigger value="upcoming">Upcoming Interviews</TabsTrigger>
+            <TabsTrigger value="availability">Set Availability</TabsTrigger>
+          </TabsList>
+          <TabsContent value="upcoming">
+            <UpcomingInterviews />
+          </TabsContent>
+          <TabsContent value="availability">
+            <SetAvailability />
+          </TabsContent>
+        </Tabs>
+      </div>
     </div>
   );
 };
