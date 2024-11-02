@@ -1,8 +1,8 @@
 
-import { prisma } from '@/lib/db'
+import { prisma } from '@/app/lib/db'
 import { getServerSession } from 'next-auth'
 import { NextResponse } from 'next/server'
-import { sendInterviewConfirmation } from '@/lib/mail'
+// import { sendInterviewConfirmation } from '@/lib/mail'
 
 export async function POST(req: Request) {
   const session = await getServerSession()
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
   })
 
   // Send confirmation emails
-  await sendInterviewConfirmation(interview)
+  // await sendInterviewConfirmation(interview)
 
   return NextResponse.json(interview)
 }
