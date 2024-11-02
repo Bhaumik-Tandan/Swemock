@@ -7,12 +7,26 @@ import { Clock, Calendar as CalendarIcon, User, LogOutIcon, CalendarDays, CheckC
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Toaster } from '@/components/ui/toaster'
 import { useToast } from '@/hooks/use-toast'
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
 
 type TimeSlot = { start: string; end: string }
 type DaySchedule = { [day: string]: TimeSlot[] }
@@ -265,25 +279,52 @@ const Header = () => {
 
 const MockPrep = () => {
   return (
-    <div className="max-w-full mx-auto bg-background min-h-screen">
+    // <div className="max-w-full mx-auto bg-background min-h-screen">
 
-      <Header />
-      <div className="max-w-2xl mx-auto mt-2">
+    //   <Header />
+    //   <div className="max-w-2xl mx-auto mt-2">
 
-        <Tabs defaultValue="upcoming" className="w-full">
-          <TabsList className="w-full grid grid-cols-2">
-            <TabsTrigger value="upcoming">Upcoming Interviews</TabsTrigger>
-            <TabsTrigger value="availability">Set Availability</TabsTrigger>
-          </TabsList>
-          <TabsContent value="upcoming">
-            <UpcomingInterviews />
-          </TabsContent>
-          <TabsContent value="availability">
-            <SetAvailability />
-          </TabsContent>
-        </Tabs>
+    //     <Tabs defaultValue="upcoming" className="w-full">
+    //       <TabsList className="w-full grid grid-cols-2">
+    //         <TabsTrigger value="upcoming">Upcoming Interviews</TabsTrigger>
+    //         <TabsTrigger value="availability">Set Availability</TabsTrigger>
+    //       </TabsList>
+    //       <TabsContent value="upcoming">
+    //         <UpcomingInterviews />
+    //       </TabsContent>
+    //       <TabsContent value="availability">
+    //         <SetAvailability />
+    //       </TabsContent>
+    //     </Tabs>
+    //   </div>
+    // </div>
+    <SidebarProvider>
+    <AppSidebar />
+    <SidebarInset>
+      <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12">
+        <div className="flex items-center gap-2 px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator orientation="vertical" className="mr-2 h-4" />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem className="hidden md:block">
+                <BreadcrumbLink href="#">
+                  Building Your Application
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator className="hidden md:block" />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Data Fetching</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+      </header>
+      <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
+<UpcomingInterviews />
       </div>
-    </div>
+    </SidebarInset>
+  </SidebarProvider>
   );
 };
 
