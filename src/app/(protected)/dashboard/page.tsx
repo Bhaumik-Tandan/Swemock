@@ -1,17 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { signOut, useSession } from 'next-auth/react';
-import { Clock, Calendar as CalendarIcon, User, Plus, X, LogOutIcon } from 'lucide-react';
+import { Clock, Calendar as CalendarIcon, User, LogOutIcon, CalendarDays, CheckCircle2, Trash2 } from 'lucide-react';
 
 import { Calendar } from "@/components/ui/calendar"
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Card, CardHeader, CardTitle, CardContent, CardDescription, CardFooter } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Toaster } from '@/components/ui/toaster'
+import { useToast } from '@/hooks/use-toast'
+
+type TimeSlot = { start: string; end: string }
+type DaySchedule = { [day: string]: TimeSlot[] }
 
 const UpcomingInterviews = () => (
   <ScrollArea className="h-[calc(100vh-8rem)] px-6">
@@ -95,135 +99,142 @@ const UpcomingInterviews = () => (
 );
 
 const SetAvailability = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [selectedTimeSlots, setSelectedTimeSlots] = useState([]);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([])
+  const [daySchedules, setDaySchedules] = useState<DaySchedule>({})
+  const { toast } = useToast()
 
-  const timeSlots = Array.from({ length: 17 }, (_, i) => {
-    const hour = Math.floor(i / 2) + 9;
-    const minute = i % 2 === 0 ? '00' : '30';
-    const ampm = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour > 12 ? hour - 12 : hour;
-    return `${displayHour}:${minute} ${ampm}`;
-  });
+  const timeSlots: TimeSlot[] = [
+    { start: '09:00', end: '10:00' },
+    { start: '10:00', end: '11:00' },
+    { start: '11:00', end: '12:00' },
+    { start: '12:00', end: '13:00' },
+    { start: '13:00', end: '14:00' },
+    { start: '14:00', end: '15:00' },
+    { start: '15:00', end: '16:00' },
+    { start: '16:00', end: '17:00' },
+    { start: '17:00', end: '18:00' },
+    { start: '18:00', end: '19:00' },
+    { start: '19:00', end: '20:00' },
+    { start: '20:00', end: '21:00' },
+  ]
 
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-  };
-  const handleAddTimeSlot = () => {
-    const newSlot = {
-      date: selectedDate,
-      startTime: '9:00 AM',
-      endTime: '10:00 AM'
-    };
-    setSelectedTimeSlots([...selectedTimeSlots, newSlot]);
-  };
+  const formatDate = (date: Date) => date.toISOString().split('T')[0]
 
-  const handleRemoveTimeSlot = (index: number) => {
-    const newTimeSlots = selectedTimeSlots.filter((_, i) => i !== index);
-    setSelectedTimeSlots(newTimeSlots);
-  };
+  const toggleTimeSlot = (date: string, slot: TimeSlot) => {
+    setDaySchedules(prev => {
+      const updatedSlots = prev[date] ? [...prev[date]] : []
+      const index = updatedSlots.findIndex(s => s.start === slot.start && s.end === slot.end)
+      if (index > -1) {
+        updatedSlots.splice(index, 1)
+      } else {
+        updatedSlots.push(slot)
+      }
+      return { ...prev, [date]: updatedSlots }
+    })
+  }
+
+  const clearAvailability = () => {
+    setSelectedDates([])
+    setDaySchedules({})
+  }
+
+  useEffect(() => {
+    if (selectedDates.length > 0) {
+      toast({
+        title: "Dates Selected",
+        description: `${selectedDates.length} date(s) selected. Set your time slots now.`,
+        duration: 3000,
+      })
+    }
+  }, [selectedDates, toast])
 
   return (
-    <ScrollArea className="h-[calc(100vh-8rem)] px-6">
-      <div className="space-y-8 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
+    <>
+      <div className="container mx-auto py-10 relative">
+        <h1 className="text-4xl font-bold mb-8 text-center">Set Your Availability</h1>
+        <div className="flex flex-col sm:flex-row gap-8 sm:px-0 px-4">
+          <Card className="flex-none sm:w-fit">
             <CardHeader>
-              <CardTitle>Select Date</CardTitle>
+              <CardTitle>Select Dates</CardTitle>
+              <CardDescription>Choose the dates you&apos;re available <br className="md:hidden sm:block hidden" /> for interviews</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div>
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={(date) => setSelectedDate(date)}
-                  className="rounded-md border shadow"
-                />
-              </div>
+            <CardContent className="w-fit mx-auto">
+              <Calendar
+                mode="multiple"
+                selected={selectedDates}
+                onSelect={setSelectedDates}
+                className="rounded-md border shadow"
+              />
             </CardContent>
           </Card>
-
-          <Card>
+          <Card className="flex-grow">
             <CardHeader>
-              <CardTitle>Add Available Time Slots</CardTitle>
+              <CardTitle>Set Time Slots</CardTitle>
+              <CardDescription>Select available time slots for selected dates</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                  <span>{formatDate(selectedDate)}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Select>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timeSlots.slice(0, -2).map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
+              <ScrollArea className="h-[400px] rounded-md border p-4" >
+                {selectedDates.map(date => (
+                  <div key={formatDate(date)} className="mb-4">
+                    <h3 className="text-lg font-semibold mb-2">{date.toDateString()}</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-5 gap-2">
+                      {timeSlots.map((slot) => (
+                        <Button
+                          key={`${date}-${slot.start}`}
+                          variant={daySchedules[formatDate(date)]?.some(s => s.start === slot.start) ? "default" : "outline"}
+                          className="justify-start"
+                          onClick={() => toggleTimeSlot(formatDate(date), slot)}
+                        >
+                          <Clock className="mr-2 h-4 w-4" />
+                          {slot.start} - {slot.end}
+                        </Button>
                       ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleAddTimeSlot}
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+                    </div>
+                  </div>
+                ))}
+              </ScrollArea>
             </CardContent>
           </Card>
         </div>
 
-        <div>
-          <h3 className="text-lg font-semibold mb-4">Selected Time Slots</h3>
-          <div className="space-y-3">
-            {selectedTimeSlots.map((slot, index) => (
-              <Card key={index}>
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-center">
-                    <div className="space-y-2">
-                      <div className="flex items-center gap-2">
-                        <CalendarIcon className="h-5 w-5 text-muted-foreground" />
-                        <span>{formatDate(slot.date)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-muted-foreground" />
-                        <span>{slot.startTime} - {slot.endTime}</span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleRemoveTimeSlot(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Availability Summary</CardTitle>
+            <CardDescription>Review your set availability</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ScrollArea className="h-[300px] rounded-md border p-4">
+              {Object.entries(daySchedules).map(([date, slots]) => (
+                <div key={date} className="mb-4">
+                  <h3 className="text-lg font-semibold flex items-center">
+                    <CalendarDays className="mr-2 h-5 w-5" />
+                    {new Date(date).toDateString()}
+                  </h3>
+                  <div className="ml-7 mt-2">
+                    {slots.map(slot => (
+                      <span key={`${date}-${slot.start}`} className="inline-block bg-primary text-primary-foreground rounded-full px-3 py-1 text-sm font-semibold mr-2 mb-2">
+                        {slot.start} - {slot.end}
+                      </span>
+                    ))}
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <Button variant="outline" className="flex-1">Cancel</Button>
-          <Button className="flex-1">Save Availability</Button>
-        </div>
+                </div>
+              ))}
+            </ScrollArea>
+          </CardContent>
+          <CardFooter className="flex justify-between">
+            <Button variant="outline" onClick={clearAvailability}>
+              <Trash2 className="mr-2 h-4 w-4" /> Clear All
+            </Button>
+            <Button>
+              <CheckCircle2 className="mr-2 h-4 w-4" /> Save Availability
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
-    </ScrollArea>
-  );
-};
+      <Toaster />
+    </>
+  )
+}
 
 const Header = () => {
   const { data: session } = useSession()
