@@ -7,8 +7,11 @@ import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar"
+import { usePathname } from "next/navigation"
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const path = usePathname();
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -18,13 +21,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={[
           {
             title: "Interviews",
-            url: "#",
+            url: "interviews",
             icon: Presentation,
+            isActive: path.startsWith("/interviews"),
           },
           {
             title: "Availability",
-            url: "#",
+            url: "availability",
             icon: CalendarDaysIcon,
+            isActive: path.startsWith("/availability"),
           },
         ]} />
         {/* <NavProjects projects={data.projects} /> */}

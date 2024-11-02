@@ -31,13 +31,13 @@ export default function HomePage() {
   const { status } = useSession()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const callbackUrl = searchParams.get('callbackUrl') || '/dashboard'
+  const callbackUrl = searchParams.get('callbackUrl') || '/interviews'
 
   useEffect(() => {
     if (status === 'unauthenticated' && searchParams.get('callbackUrl')) {
       signIn('google', { callbackUrl })
     } else if (status === 'authenticated') {
-      router.replace('/dashboard')
+      router.replace('/interviews')
     }
   }, [status, callbackUrl, searchParams, router])
 
