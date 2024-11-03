@@ -21,18 +21,17 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={[
           {
             title: "Interviews",
-            url: "interviews",
+            url: "/interviews",
             icon: Presentation,
             isActive: path.startsWith("/interviews"),
           },
           {
             title: "Availability",
-            url: "availability",
+            url: "/availability",
             icon: CalendarDaysIcon,
             isActive: path.startsWith("/availability"),
           },
         ]} />
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser />
