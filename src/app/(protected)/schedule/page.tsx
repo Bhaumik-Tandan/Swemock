@@ -1,14 +1,38 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { format, isSameDay } from 'date-fns'
 import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { ChevronLeft, ChevronRight, Clock, Globe, MonitorPlay, Brain, Code, Database, Server, Terminal } from 'lucide-react'
 import { ScrollArea } from '@/components/ui/scroll-area'
 
-// Mock data
-const skills = ['React', 'Node.js', 'Python', 'Java', 'C++']
+const skills = [
+  { name: 'Frontend', icon: MonitorPlay },
+  { name: 'Backend', icon: Server },
+  { name: 'Database', icon: Database },
+  { name: 'DevOps', icon: Terminal },
+  { name: 'Algorithms', icon: Brain },
+  { name: 'System Design', icon: Code },
+]
+
+const timeSlots = [
+  { time: '10:00am', interviewer: 'Alice Johnson' },
+  { time: '10:15am', interviewer: 'Bob Smith' },
+  { time: '10:30am', interviewer: 'Charlie Brown' },
+  { time: '10:45am', interviewer: 'Diana Prince' },
+  { time: '11:00am', interviewer: 'Eva Green' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+  { time: '11:15am', interviewer: 'Frank Castle' },
+]
 
 // Mock function to generate available dates (in a real app, this would come from an API)
 const getAvailableDates = () => {
@@ -24,114 +48,149 @@ const getAvailableDates = () => {
   return availableDates
 }
 
-// Mock time slots with interviewers
-const timeSlots = [
-  { time: '09:00 AM', interviewer: 'Alice Johnson' },
-  { time: '11:00 AM', interviewer: 'Bob Smith' },
-  { time: '02:00 PM', interviewer: 'Charlie Brown' },
-  { time: '04:00 PM', interviewer: 'Diana Prince' },
-]
-
 export default function InterviewScheduler() {
+  const [step, setStep] = useState(1)
   const [selectedSkill, setSelectedSkill] = useState<string>('')
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<typeof timeSlots[0] | null>(null)
 
   const availableDates = useMemo(() => getAvailableDates(), [])
 
+  const handleSkillSelect = (skill: string) => {
+    setSelectedSkill(skill)
+    setStep(2)
+  }
+
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date)
     setSelectedTimeSlot(null)
   }
 
-  const handleSubmit = () => {
-    if (selectedSkill && selectedDate && selectedTimeSlot) {
-      console.log('Scheduled interview:', {
-        skill: selectedSkill,
-        date: format(selectedDate, 'MMMM d, yyyy'),
-        time: selectedTimeSlot.time,
-        interviewer: selectedTimeSlot.interviewer,
-      })
-      // Here you would typically send this data to your backend
+  const handleBack = () => {
+    setStep(1)
+    setSelectedDate(undefined)
+    setSelectedTimeSlot(null)
+  }
+
+  const handleConfirm = () => {
+    if (selectedTimeSlot) {
+      console.log('Scheduled:', { selectedSkill, selectedDate, selectedTimeSlot })
     }
   }
 
   return (
-    <div className="container">      
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <h2 className="text-l font-semibold mb-4">Select a skill for your interview</h2>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill) => (
-              <Button
-                key={skill}
-                onClick={() => setSelectedSkill(skill)}
-                variant={selectedSkill === skill ? 'default' : 'outline'}
-                className="flex-grow sm:flex-grow-0"
-              >
-                {skill}
-              </Button>
-            ))}
+    <div className="container mx-auto p-4 max-w-6xl">
+      {step === 1 ? (
+        <div className="space-y-6">
+          <h1 className="text-3xl font-bold text-center">Select Your Interview Topic</h1>
+          <div className="flex flex-wrap justify-center gap-4">
+            {skills.map((skill) => {
+              const Icon = skill.icon
+              return (
+                <Button
+                  key={skill.name}
+                  onClick={() => handleSkillSelect(skill.name)}
+                  variant="outline"
+                  className={`h-24 w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.33%-0.75rem)] flex flex-col items-center justify-center gap-2 text-lg ${
+                    selectedSkill === skill.name ? 'border-primary border-2' : ''
+                  }`}
+                >
+                  <Icon className="h-8 w-8" />
+                  {skill.name}
+                </Button>
+              )
+            })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      ) : (
+        <div className="flex flex-col md:flex-row gap-8">
+          {/* Left Side - Interview Details */}
+          <div className="w-full md:w-[240px] flex-shrink-0 space-y-6">
+            <Button variant="ghost" onClick={handleBack} className="-ml-3">
+              <ChevronLeft className="mr-2 h-4 w-4" /> Back
+            </Button>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h2 className="text-xl font-semibold">{selectedSkill} Interview</h2>
+              </div>
 
-      <div className="flex flex-col sm:flex-row gap-8 sm:px-0 px-4">
-        <Card className="flex-none sm:w-fit">
-          <CardContent className="p-4">
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={handleDateSelect}
-              className="rounded-md border shadow"
-              modifiers={{
-                available: (date) => availableDates.some((availableDate) => isSameDay(date, availableDate)),
-                selected: (date) => selectedDate ? isSameDay(date, selectedDate) : false,
-              }}
-              modifiersStyles={{
-                available: { fontWeight: 'bold' },
-                selected: { backgroundColor: 'black', color: 'white' },
-              }}
-              disabled={(date) => !availableDates.some((availableDate) => isSameDay(date, availableDate))}
-            />
-          </CardContent>
-        </Card>
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <Clock className="mr-2 h-4 w-4" />
+                  <span>1 hour</span>
+                </div>
+                <div className="flex items-center">
+                  <Globe className="mr-2 h-4 w-4" />
+                  <span>Remote Interview</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <Card className="flex-grow">
-          <CardContent className="p-4">
-            <h2 className="text-l font-semibold mb-4">
-              {selectedDate
-                ? `Available time slots for ${format(selectedDate, 'MMMM d, yyyy')}`
-                : 'Select a date to see available time slots'}
-            </h2>
-            {selectedDate && (
-              <ScrollArea className="">
-                {timeSlots.map((slot) => (
-                  <Button
-                    key={slot.time}
-                    onClick={() => setSelectedTimeSlot(slot)}
-                    variant={selectedTimeSlot === slot ? 'default' : 'outline'}
-                    className="w-full justify-between mb-2"
-                  >
-                    <span>{slot.time}</span>
-                    <span>{slot.interviewer}</span>
-                  </Button>
-                ))}
-              </ScrollArea>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          {/* Right Side - Calendar and Time Slots */}
+          <div className="flex-grow space-y-6">
+            <div className="flex justify-between items-center">
+              <div className="text-lg font-medium">
+                {selectedDate ? format(selectedDate, 'EEEE, MMMM d') : 'Select a date'}
+              </div>
+            </div>
 
-      <div className="mt-6 text-center">
-        <Button
-          onClick={handleSubmit}
-          disabled={!selectedSkill || !selectedDate || !selectedTimeSlot}
-          size="lg"
-        >
-          Schedule Interview
-        </Button>
-      </div>
+            <div className="flex flex-col md:flex-row gap-8">
+              <Card className="p-4 w-full md:w-auto flex-shrink-0">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  className="rounded-md border shadow"
+                  modifiers={{
+                    available: (date) => availableDates.some((availableDate) => isSameDay(date, availableDate)),
+                    selected: (date) => selectedDate ? isSameDay(date, selectedDate) : false,
+                  }}
+                  modifiersStyles={{
+                    available: { fontWeight: 'bold' },
+                    selected: { backgroundColor: 'black', color: 'white' },
+                  }}
+                  disabled={(date) => !availableDates.some((availableDate) => isSameDay(date, availableDate))}
+                />
+              </Card>
+
+              <Card className="flex-grow">
+                <CardContent className="p-4">
+                  {selectedDate && (
+                    <ScrollArea className="h-[300px]">
+                      {timeSlots.map((slot) => {
+                        const isSelected = selectedTimeSlot === slot
+                        return (
+                          <div key={slot.time} className="flex items-center gap-2 mb-2">
+                            <Button
+                              variant="outline"
+                              className={`w-full h-12 text-left px-4 ${
+                                isSelected ? 'bg-muted hover:bg-muted' : ''
+                              }`}
+                              onClick={() => setSelectedTimeSlot(slot)}
+                              >
+                              <span className="font-medium">{slot.time}</span>
+                              <span className="text-sm text-muted-foreground ml-2">
+                                {slot.interviewer}
+                              </span>
+                            </Button>
+                            {isSelected && (
+                              <Button className="h-12 px-4 whitespace-nowrap" onClick={handleConfirm}>
+                                Confirm
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      )}
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
