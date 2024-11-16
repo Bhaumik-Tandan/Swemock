@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CalendarCheck2, CalendarDaysIcon, Presentation } from "lucide-react"
+import { CalendarCheck2, CalendarDaysIcon, Presentation, UserCog } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
@@ -30,6 +30,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             url: "/availability",
             icon: CalendarDaysIcon,
             isActive: path.startsWith("/availability"),
+          },
+          {
+            title: "Skills",
+            url: "/skills",
+            icon: UserCog,
+            isActive: path.startsWith("/skills"),
           },
           {
             title: "Schedule",

@@ -158,7 +158,7 @@ export default function InterviewScheduler() {
               <Card className="flex-grow">
                 <CardContent className="p-4">
                   {selectedDate && (
-                    <ScrollArea className="h-[300px]">
+                    <ScrollArea className="h-[300px] px-4">
                       {timeSlots.map((slot) => {
                         const isSelected = selectedTimeSlot === slot
                         return (
