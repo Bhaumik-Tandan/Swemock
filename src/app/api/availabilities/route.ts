@@ -41,6 +41,12 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    if (Object.keys(availabilities).length === 0) {
+      return NextResponse.json({
+        message: 'Availabilities cleared successfully',
+      });
+    }
+
     // Process and save new time slots
     const timeSlots = [];
     for (const [date, slots] of Object.entries(availabilities)) {
@@ -128,9 +134,7 @@ export async function GET(req: NextRequest) {
       });
     });
 
-    return NextResponse.json({
-      availabilities: groupedAvailabilities,
-    });
+    return NextResponse.json(groupedAvailabilities);
 
   } catch (error) {
     console.error('Error fetching availabilities:', error);

@@ -81,6 +81,26 @@ const SetAvailability = () => {
   };
 
   useEffect(() => {
+    (async () => {
+      const response = await fetch('/api/availabilities');
+      if (!response.ok) {
+        toast({
+          title: "Error",
+          description: "Failed to fetch availability",
+          duration: 3000,
+          variant: "destructive",
+        })
+        return;
+      }
+
+      const data = await response.json();
+      setDaySchedules(data);
+      setSelectedDates(Object.keys(data).map(date => new Date(date)));
+    }
+    )();
+  }, [toast]);
+
+  useEffect(() => {
     if (selectedDates.length > 0) {
       toast({
         title: "Dates Selected",
